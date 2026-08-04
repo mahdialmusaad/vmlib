@@ -10,18 +10,6 @@
 extern "C" {
 #endif
 
-#ifdef __has_include
-# define VM_HASINC(a) __has_include(a)
-#else
-# define VM_HASINC(a) 0
-#endif
-
-#ifdef VM_STATIC
-# define VM_API static
-#else
-# define VM_API extern
-#endif
-
 #ifdef __STDC_VERSION__
 # define VM_CVER __STDC_VERSION__
 #else
@@ -42,6 +30,7 @@ extern "C" {
 # define VM_PACK_END _Pragma("GCC diagnostic pop")
 # define VM_INLINE __inline__
 # define VM_THREADLOCAL __thread
+# define VM_NOINLINE_IMPL __attribute__((__noinline__))
 #elif defined(_MSC_VER)
 # define VM_PACK_START(n) __pragma(warning(push)) __pragma(warning(disable:4201)) __pragma(pack(push, 1)) __declspec(align(n))
 # define VM_PACK_MID(n)
@@ -50,6 +39,7 @@ extern "C" {
 # define VM_RSTATEW_END
 # define VM_INLINE __inline
 # define VM_THREADLOCAL __declspec(thread)
+# define VM_NOINLINE_IMPL __declspec(noinline)
 #else
 # if VM_CVER >= 202311L
 #  define VM_THREADLOCAL thread_local
@@ -68,6 +58,26 @@ extern "C" {
 # define VM_PACK_END
 # define VM_RSTATEW_START
 # define VM_RSTATEW_END
+# define VM_NOINLINE_IMPL
+#endif
+
+#ifdef VM_NOINLINE
+# undef VM_NOINLINE
+# define VM_NOINLINE VM_NOINLINE_IMPL
+#else
+# define VM_NOINLINE
+#endif
+
+#ifdef VM_STATIC
+# define VM_API VM_NOINLINE static
+#else
+# define VM_API VM_NOINLINE extern
+#endif
+
+#ifdef __has_include
+# define VM_HASINC(a) __has_include(a)
+#else
+# define VM_HASINC(a) 0
 #endif
 
 #if defined(__MINGW32__) || defined(__MINGW64__)
@@ -1124,6 +1134,7 @@ VM_API VM_ATTRIBPURE float vnoise3d_fractal(const vnoise *n, double x, double y,
 #undef VM_CVER
 #undef VM_INLINE
 #undef VM_THREADLOCAL
+#undef VM_NOINLINE_IMPL
 #undef VM_MINGW
 #undef VM_LONGLONG
 

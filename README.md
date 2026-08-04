@@ -8,6 +8,8 @@ A header-only general mathematics library.
 ## Usage
 Define `VM_IMPL` before including the library in **exactly one source file**. All other times, you can just include the library normally.<br>
 You can define `VM_STATIC` before including to make all functions static; this is useful when you are using the library in one file only.<br>
+You can also define `VM_NOINLINE` before the **implementation** `#include` if you do not want the functions to be inlined by the compiler.
+
 Documentation for individual functions can be found in the header file itself.
 ## Support
 The library is writted in ANSI C (C89/90) but relies on a few compiler extensions, all of which are standard in at most C11. It has been tested and verified to work when compiled on GCC, Clang, MSVC and MinGW64.<br>
