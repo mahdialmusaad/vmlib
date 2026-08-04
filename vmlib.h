@@ -6,6 +6,10 @@
 #ifndef VMATHLIB_HDR
 #define VMATHLIB_HDR
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef __has_include
 # define VM_HASINC(a) __has_include(a)
 #else
@@ -1154,4 +1158,8 @@ VM_API VM_ATTRIBPURE float vnoise3d_fractal(const vnoise *n, double x, double y,
 #undef VM_VEC2F_IMPL
 #undef VM_VEC2_IMPL
 
-#endif /* __VMATHLIB_HDR__ */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* VMATHLIB_HDR */
