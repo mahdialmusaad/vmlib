@@ -145,8 +145,8 @@ typedef long vm_i64;
 #define VFMA(a,b,c) (((a) * (b)) + (c))
 #define VMIX(x,y,a) ((x) * (1 - (a)) + (y) * (a))
 #define VSTEP(edge,x) (((x) < (edge)) ? 0 : 1)
-#define VRADIANS(deg) (__typeof__(deg)(M_PI / 180.0) * (deg))
-#define VDEGREES(rad) (__typeof__(rad)(180.0 / M_PI) * (deg))
+#define VRADIANS(deg) ((__typeof__(deg))(M_PI / 180.0) * (deg))
+#define VDEGREES(rad) ((__typeof__(rad))(180.0 / M_PI) * (deg))
 
 /* ---------- Mathematical vectors ---------- */
 
