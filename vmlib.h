@@ -1129,46 +1129,6 @@ VM_API VM_ATTRIBPURE float vnoise3d_fractal(const vnoise *n, double x, double y,
 
 #endif
 
-#undef VM_HASINC
-#undef VM_API
-#undef VM_CVER
-#undef VM_INLINE
-#undef VM_THREADLOCAL
-#undef VM_NOINLINE_IMPL
-#undef VM_MINGW
-#undef VM_LONGLONG
-
-#undef VM_ATTRIBCONST
-#undef VM_ATTRIBPURE
-#undef VM_EXTENSION
-
-#undef VM_RSTATEW_START
-#undef VM_RSTATEW_END
-#undef VM_PACK_START
-#undef VM_PACK_MID
-#undef VM_PACK_END
-
-#undef VM_VEC_DEF
-#undef VM_VECF_DEF
-#undef VM_VEC4_SET
-#undef VM_VEC3_SET
-#undef VM_VEC2_SET
-#undef VM_VEC4F_DEF
-#undef VM_VEC4_DEF
-#undef VM_VEC3F_DEF
-#undef VM_VEC3_DEF
-#undef VM_VEC2F_DEF
-#undef VM_VEC2_DEF
-
-#undef VM_VECF_IMPL
-#undef VM_VEC_IMPL
-#undef VM_VEC4F_IMPL
-#undef VM_VEC4_IMPL
-#undef VM_VEC3F_IMPL
-#undef VM_VEC3_IMPL
-#undef VM_VEC2F_IMPL
-#undef VM_VEC2_IMPL
-
 #ifdef __cplusplus
 }
 #endif
