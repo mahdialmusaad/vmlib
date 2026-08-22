@@ -113,13 +113,25 @@ typedef long vm_i64;
 # define VM_U64C(a) a ## UL
 #endif
 
-#if VM_HASINC(<math.h>)
+#if !VM_HASINC(<math.h>)
 # include <math.h>
 # define vm_sqrt sqrt
 # define vm_sin sin
 # define vm_cos cos
-#elif !defined (vm_sqrt) || !defined(vm_cos) || !defined(vm_sin)
-# define VM_NEEDMATH
+# define vm_tan tan
+#else
+# ifndef vm_sqrt
+#  define VM_NEEDMATH_SQRT
+# endif
+# ifndef vm_sin
+#  define VM_NEEDMATH_SIN
+# endif
+# ifndef vm_cos
+#  define VM_NEEDMATH_COS
+# endif
+# ifndef vm_tan
+#  define VM_NEEDMATH_TAN
+# endif
 #endif
 
 #ifndef M_PI
@@ -449,8 +461,7 @@ static VM_INLINE int vm_memcmp(const void *a, const void *b, vm_u64 n)
 }
 #endif
 
-#ifdef VM_NEEDMATH
-# undef VM_NEEDMATH
+#ifdef VM_NEEDMATH_SQRT
 static VM_ATTRIBCONST double vm_sqrt(double x)
 {
 	double g = 1.0;
@@ -458,6 +469,8 @@ static VM_ATTRIBCONST double vm_sqrt(double x)
 	for (i = 0; i < 20; ++i) g -= (g * g - x) / (2.0 * g);
 	return g;
 }
+#endif
+#ifdef VM_NEEDMATH_SIN
 static VM_ATTRIBCONST double vm_sin(double x)
 {
 	double x2 = x * x;
@@ -465,12 +478,17 @@ static VM_ATTRIBCONST double vm_sin(double x)
 	double x7 = x5 * x2, f7 = 5040.0, x9 = x7 * x2, f9 = 362880.0;
 	return x - (x3/f3) + (x5/f5) - (x7/f7) + (x9/f9);
 }
+#endif
+#ifdef VM_NEEDMATH_COS
 static VM_ATTRIBCONST double vm_cos(double x)
 {
 	double x2 = x * x, f2 = 2.0, x4 = x2 * x2, f4 = 24.0;
 	double x6 = x4 * x2, f6 = 720.0, x8 = x6 * x2, f8 = 40320.0;
 	return 1.0 - (x2/f2) + (x4/f4) - (x6/f6) + (x8/f8);
 }
+#endif
+#ifdef VM_NEEDMATH_TAN
+# define vm_tan(x) (vm_sin(x) / vm_cos(x))
 #endif
 
 /* ---------- Mathematical vectors ---------- */
@@ -853,7 +871,7 @@ VM_API void mat4lookat(mat4 *m, const vec3 *campos, const vec3 *targetpos, const
 }
 VM_API void mat4perspective(mat4 *m, float fovy, float aspect, float znear, float zfar)
 {
-	float t = (float)vm_sin((double)fovy * 0.5) / (float)vm_cos((double)fovy * 0.5), r = zfar - znear;
+	float t = (float)vm_tan((double)fovy * 0.5), r = zfar - znear;
 	mat4sets(m, 0);
 	m->n[0][0] = 1.0f / (aspect * t);
 	m->n[1][1] = 1.0f / t;
