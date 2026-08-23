@@ -6,18 +6,21 @@ A header-only general mathematics library.
 - Pseudo and cryptographic random number generation
 - Noise generators
 ## Usage
-Define `VM_IMPL` before including the library in **exactly one source file**. All other times, you can just include the library normally.<br>
-You can define `VM_STATIC` before including to make all functions static; this is useful when you are using the library in one file only.<br>
-You can also define `VM_NOINLINE` before the **implementation** `#include` if you do not want the functions to be inlined by the compiler.
+Define `VM_IMPL` before including the library in **exactly one source file**. All other times, you can just include the header normally.
+
+Other options:
+- `VM_STATIC`: Make all functions `static`, usually for using the library in one file only.
+- `VM_NOINLINE`: Do not add `inline` to the definitions when implementing the functions.
+- `VM_NO_MATH_H`: Use the fallback or user-defined math functions, even if `math.h` is found. 
 
 Documentation for individual functions can be found in the header file itself.
 ## Support
-The library is writted in ANSI C (C89/90) but relies on a few compiler extensions, all of which are standard in at most C11. It has been tested and verified to work when compiled on GCC, Clang, MSVC and MinGW64.<br>
-Due to a lack of support, using multiple temporaries simultaneously will lead to erroneous results due to the implementation method, and it is likely not possible to work around this.
-Support for thread-local, inline and attributes (const, pure) are checked for, as well as header availability. It uses `sqrt`, `sin` and `cos` for vector/matrix calculations, so make sure to link the math library if needed (usually with `-lm`).<br>
+The library is writted in ANSI C (C89/90) but relies on a few compiler extensions, all of which are standard in at most C11. It has been tested and verified to work when compiled on GCC, Clang, MSVC and MinGW.<br>
+Due to a lack of support, using multiple temporaries simultaneously when compiling for C89 will lead to erroneous results due to the implementation method, and it is likely not possible to work around this without extensions.
+Support for thread-local, inline and attributes (const, pure) are checked for, as well as header availability. It uses `sqrt`, `sin`, `cos` and `tan` for vector/matrix calculations, so make sure to link the math library if needed (usually with `-lm`).<br>
 If these are not available, a fallback implementation will be used, but you can override the fallback by defining your own (same function name, prefixed with `vm_`).
 ## Example
-Below is some example usage of the library for different scenarios. These examples are not exhaustive, and more features are available and even more may be added in the future.
+Below is some example usage of the library for different scenarios.
 ### Vectors
 ```c
 #define VM_IMPL

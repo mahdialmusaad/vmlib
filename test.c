@@ -1,10 +1,7 @@
-#ifndef VM_IMPL
-# define VM_IMPL
-#endif
-#ifndef VM_STATIC
-# define VM_STATIC
-#endif
+#define VM_IMPL
+#define VM_STATIC
 
+#define VM_NO_MATH_H
 #include "vmlib.h"
 
 #include <stdint.h>
@@ -12,6 +9,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include <math.h>
 
 static int numfailed;
 
@@ -187,6 +185,50 @@ static void testrand(void)
 	EXPECT(fgmax - fgmin < 1500);
 }
 
+static void testfb(void)
+{
+	int i;
+	double maxerr_sqrt = 0.0;
+	double maxerr_sin = 0.0;
+	double maxerr_cos = 0.0;
+	double maxerr_tan = 0.0;
+
+	vrand_os_st os_rng;
+	vrand_os_init(&os_rng);
+
+	for (i = 0; i < 10000; ++i) {
+		short sx;
+		double x;
+		
+		double sqrt_approx, sqrt_actual, sqrt_error;
+		double sin_approx, sin_actual, sin_error;
+		double cos_approx, cos_actual, cos_error;
+		double tan_approx, tan_actual, tan_error;
+		
+		vrand_os(&os_rng, &sx, sizeof sx);
+		x = (double)sx;
+
+		sqrt_approx = vm_sqrt(VABS(x)); sqrt_actual = sqrt(VABS(x)); sqrt_error = sqrt_approx - sqrt_actual;
+		sin_approx = vm_sin(x); sin_actual = sin(x); sin_error = sin_approx - sin_actual;
+		cos_approx = vm_cos(x); cos_actual = cos(x); cos_error = cos_approx - cos_actual;
+		tan_approx = vm_tan(x); tan_actual = tan(x); tan_error = tan_approx - tan_actual;
+	
+		maxerr_sqrt += VABS(sqrt_error);
+		maxerr_sin += VABS(sin_error);
+		maxerr_cos += VABS(cos_error);
+		maxerr_tan += VABS(tan_error);
+	}
+
+	vrand_os_destroy(&os_rng);
+
+	printf("TRIG ERRORS:\tsqrt: %f sin: %f cos: %f tan: %f\n", maxerr_sqrt, maxerr_sin, maxerr_cos, maxerr_tan);
+
+	EXPECT(maxerr_sqrt < 0.1);
+	EXPECT(maxerr_sin < 0.1);
+	EXPECT(maxerr_cos < 0.1);
+	EXPECT(maxerr_tan < 0.1);
+}
+
 static float testnoise_vnoise3d(vnoise *n, double x, double y) { return vnoise3d(n, x, y, g_zcoord); }
 static float testnoise_vnoise3d_fractal(vnoise *n, double x, double y) { return vnoise3d_fractal(n, x, y, g_zcoord, g_octaves, g_lacunarity, g_gain); }
 
@@ -245,6 +287,7 @@ int main(void)
 	testvec();
 	testmat();
 	testrand();
+	testfb();
 	testnoise("vnoise3d.ppm", noise_seed, testnoise_vnoise3d);
 
 	g_octaves = 1;

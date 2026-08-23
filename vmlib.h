@@ -113,7 +113,7 @@ typedef long vm_i64;
 # define VM_U64C(a) a ## UL
 #endif
 
-#if !VM_HASINC(<math.h>)
+#if VM_HASINC(<math.h>) && !defined(VM_NO_MATH_H)
 # include <math.h>
 # define vm_sqrt sqrt
 # define vm_sin sin
@@ -471,20 +471,26 @@ static VM_ATTRIBCONST double vm_sqrt(double x)
 }
 #endif
 #ifdef VM_NEEDMATH_SIN
-static VM_ATTRIBCONST double vm_sin(double x)
+static VM_ATTRIBCONST double vm_sin(double _x)
 {
+	double tx = _x -= ((double)((int)(_x / (M_PI * 2.0)))) * (M_PI * 2.0);
+	double x = tx > M_PI ? (tx - M_PI * 2.0) : (tx < -M_PI ? tx + M_PI * 2.0 : tx); 
 	double x2 = x * x;
 	double x3 = x2 * x, f3 = 6.0, x5 = x3 * x2, f5 = 120.0;
 	double x7 = x5 * x2, f7 = 5040.0, x9 = x7 * x2, f9 = 362880.0;
-	return x - (x3/f3) + (x5/f5) - (x7/f7) + (x9/f9);
+	double x11 = x9 * x2, f11 = 39916800.0, x13 = x11 * x2, f13 = 6227020800.0;
+	return x - (x3/f3) + (x5/f5) - (x7/f7) + (x9/f9) - (x11/f11) + (x13/f13);
 }
 #endif
 #ifdef VM_NEEDMATH_COS
-static VM_ATTRIBCONST double vm_cos(double x)
+static VM_ATTRIBCONST double vm_cos(double _x)
 {
+	double tx = _x -= ((double)((int)(_x / (M_PI * 2.0)))) * (M_PI * 2.0);
+	double x = tx > M_PI ? (tx - M_PI * 2.0) : (tx < -M_PI ? tx + M_PI * 2.0 : tx); 
 	double x2 = x * x, f2 = 2.0, x4 = x2 * x2, f4 = 24.0;
 	double x6 = x4 * x2, f6 = 720.0, x8 = x6 * x2, f8 = 40320.0;
-	return 1.0 - (x2/f2) + (x4/f4) - (x6/f6) + (x8/f8);
+	double x10 = x8 * x2, f10 = 3628800.0, x12 = x10 * x2, f12 = 479001600.0;
+	return 1.0 - (x2/f2) + (x4/f4) - (x6/f6) + (x8/f8) - (x10/f10) + (x12/f12);
 }
 #endif
 #ifdef VM_NEEDMATH_TAN
