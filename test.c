@@ -28,6 +28,11 @@ static double g_yscaling = 0.1;
 	}\
 } while (0)
 
+static void testtypes(void)
+{
+	EXPECT(sizeof(vm_u64) == 8);
+}
+
 static void testvec(void)
 {
 	vec4 v4_0 = VEC4I, v4_2 = VEC4S(2.0f), v4_m2 = VEC4S(-2.0f), v4_4 = VEC4S(4.0f), v4_5 = VEC4S(5.0f), v4_7 = VEC4S(7.0f);
@@ -284,6 +289,7 @@ int main(void)
 	uint64_t noise_seed = 2147;
 	char fnbuf[128];
 
+	testtypes();
 	testvec();
 	testmat();
 	testrand();
