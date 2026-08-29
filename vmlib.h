@@ -114,7 +114,7 @@ typedef long vm_i64;
 #endif
 
 #if VM_HASINC(<math.h>) && !defined(VM_NO_MATH_H)
-# include <math.h>
+# include <math.h> // IWYU pragma: export
 # define vm_sqrt sqrt
 # define vm_sin sin
 # define vm_cos cos
