@@ -230,23 +230,9 @@ VM_VEC2_DEF(ivec2, int)
 VM_VEC2_DEF(uvec2, unsigned)
 
 #if VM_CVER == 198900L
-# define VM_COM_DOUBLE(x,y) ((x),(y))
-# define VM_COM_TRIPLE(x,y,z) VM_COM_DOUBLE(VM_COM_DOUBLE(x, y), z)
-# define VEC2(a,b) (*VM_COM_TRIPLE(\
-	__vxvec2_aginit_glob.x = a,\
-	__vxvec2_aginit_glob.y = b,\
-	&__vxvec2_aginit_glob))
-# define VEC3(a,b,c) (*VM_COM_DOUBLE(VM_COM_TRIPLE(\
-	__vxvec3_aginit_glob.x = a,\
-	__vxvec3_aginit_glob.y = b,\
-	__vxvec3_aginit_glob.z = c),\
-	&__vxvec3_aginit_glob))
-# define VEC4(a,b,c,d) (*VM_COM_TRIPLE(VM_COM_TRIPLE(\
-	__vxvec4_aginit_glob.x = a,\
-	__vxvec4_aginit_glob.y = b,\
-	__vxvec4_aginit_glob.z = c),\
-	__vxvec4_aginit_glob.w = d,\
-	&__vxvec4_aginit_glob))
+# define VEC2(a,b) {{a,b}}
+# define VEC3(a,b,c) {{a,b,c}}
+# define VEC4(a,b,c,d) {{a,b,c,d}}
 #else
 # define VEC2(a,b) (vec2){{a,b}}
 # define VEC3(a,b,c) (vec3){{a,b,c}}
@@ -270,21 +256,13 @@ VM_PACK_END
 typedef mat4 mat4x4;
 
 #if VM_CVER == 198900L
-# define MAT4S(s) (__vmat4_aginit_glob = VM_COM_TRIPLE(VM_COM_TRIPLE(\
-	vec4set(&__vmat4_aginit_glob.v[0], s, 0, 0, 0),\
-	vec4set(&__vmat4_aginit_glob.v[1], 0, s, 0, 0),\
-	vec4set(&__vmat4_aginit_glob.v[2], 0, 0, s, 0)),\
-	vec4set(&__vmat4_aginit_glob.v[3], 0, 0, 0, s),\
-	__vmat4_aginit_glob))
-# define MAT4V(a,b,c,d) VM_COM_TRIPLE(VM_COM_TRIPLE(\
-	__vmat4_aginit_glob.v[0] = a,\
-	__vmat4_aginit_glob.v[1] = b,\
-	__vmat4_aginit_glob.v[2] = c),\
-	__vmat4_aginit_glob.v[3] = d,\
-	__vmat4_aginit_glob)
+# define MAT4S(s) {{s,0,0,0,0,s,0,0,0,0,s,0,0,0,0,s}}
+# define MAT4V(a,b,c,d) {{a.x,a.y,a.z,a.w,b.x,b.y,b.z,b.w,c.x,c.y,c.z,c.w,d.x,d.y,d.z,d.w}}
+# define MAT4A(a,b,c,d, e,f,g,h, i,j,k,l, m,n,o,p) {{a,b,c,d, e,f,g,h, i,j,k,l, m,n,o,p}}
 #else
 # define MAT4S(s) (mat4){{s,0,0,0,0,s,0,0,0,0,s,0,0,0,0,s}}
 # define MAT4V(a,b,c,d) (mat4){{a.x,a.y,a.z,a.w,b.x,b.y,b.z,b.w,c.x,c.y,c.z,c.w,d.x,d.y,d.z,d.w}}
+# define MAT4A(a,b,c,d, e,f,g,h, i,j,k,l, m,n,o,p) (mat4){{a,b,c,d, e,f,g,h, i,j,k,l, m,n,o,p}}
 #endif
 
 #define MAT4(x) MAT4S(x)
@@ -344,17 +322,6 @@ VM_API void mat4lookat(mat4 *m, const vec3 *campos, const vec3 *targetpos, const
 VM_API void mat4perspective(mat4 *m, float fovy, float aspect, float znear, float zfar);
 /* Create an orthographic projection matrix m, where objects always maintain their size. */
 VM_API void mat4orthographic(mat4 *m, float left, float right, float bottom, float top, float znear, float zfar);
-
-/* Terrible C89/MinGW aggregate initialization workaround variables. */
-
-#if VM_CVER == 198900L
-VM_RSTATEW_START
-extern VM_THREADLOCAL mat4 __vmat4_aginit_glob;
-extern VM_THREADLOCAL vec2 __vxvec2_aginit_glob;
-extern VM_THREADLOCAL vec3 __vxvec3_aginit_glob;
-extern VM_THREADLOCAL vec4 __vxvec4_aginit_glob;
-VM_RSTATEW_END
-#endif
 
 /* ---------- Random number generation ---------- */
 
@@ -431,12 +398,6 @@ VM_API float vnoise3d_fractal(const vnoise *n, double x, double y, double z, int
 #ifdef VM_IMPL
 
 VM_RSTATEW_START
-#if VM_CVER == 198900L
-VM_THREADLOCAL mat4 __vmat4_aginit_glob;
-VM_THREADLOCAL vec2 __vxvec2_aginit_glob;
-VM_THREADLOCAL vec3 __vxvec3_aginit_glob;
-VM_THREADLOCAL vec4 __vxvec4_aginit_glob;
-#endif
 VM_THREADLOCAL vrandom_st __vrand_tlglob_state = { { VM_U64C(18396103567723650381), VM_U64C(16949579112299196916), VM_U64C(14974155592387081785), VM_U64C(6981522026073024744) } };
 VM_RSTATEW_END
 

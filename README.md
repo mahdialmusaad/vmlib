@@ -15,8 +15,7 @@ Other options:
 
 Documentation for individual functions can be found in the header file itself.
 ## Support
-The library is writted in ANSI C (C89/90) but relies on a few compiler extensions, all of which are standard in at most C11. It has been tested and verified to work when compiled on GCC, Clang, MSVC and MinGW.<br>
-Due to a lack of support, using multiple temporaries simultaneously when compiling for C89 will lead to erroneous results due to the implementation method, and it is likely not possible to work around this without extensions.
+The implementation is written in pure C89, but some macros and structures make use of compiler extensions which are standard in at most C11.<br>
 Support for thread-local, inline and attributes (const, pure) are checked for, as well as header availability. It uses `sqrt`, `sin`, `cos` and `tan` for vector/matrix calculations, so make sure to link the math library if needed (usually with `-lm`).<br>
 If these are not available, a fallback implementation will be used, but you can override the fallback by defining your own (same function name, prefixed with `vm_`).
 ## Example
@@ -59,8 +58,8 @@ int main(void)
 
 	/* Scalar versions of the operators are also available; same name but with 'c' at the end (e.g. vec4mulc(&a, &b, 2.0)). */
 
-	/* Due to how the initialization macros are defined, you can use them as normal variables.
-	   However, due to the lack of full support, they cannot be used in multiple parameters simultaneously in C89 (later is fine). */
+	/* In C99+, compound literals are used so init macros can be used like normal variables.
+	   Otherwise (C89), they can only be used for variable initialization. */
 	vec4setv(&c, &VEC4(1.0f, 2.0f, 3.0f, 4.0f));
 	vec4add(&c, &c, &VEC4(12.0f, 34.0f, 56.0f, 78.0f));
 
