@@ -204,6 +204,7 @@ VM_API void m##divc(m *r, const m *a, t s);\
 VM_API void m##neg(m *r, const m *a);\
 VM_API int m##eq(const m *a, const m *b);
 #define VM_VECF_DEF(m,t) VM_VEC_DEF(m,t)\
+VM_API int m##eeq(const m *a, const m *b, t epsilon);\
 VM_API t m##length(const m *a);\
 VM_API t m##distance(const m *a, const m *b);\
 VM_API t m##dot(const m *a, const m *b);\
@@ -597,6 +598,7 @@ VM_API void m##mulc(m *r, const m *a, t s) { r->x = a->x * s; r->y = a->y * s; r
 VM_API void m##div(m *r, const m *a, const m *b) { r->x = a->x / b->x; r->y = a->y / b->y; r->z = a->z / b->z; r->w = a->w / b->w; }\
 VM_API void m##divc(m *r, const m *a, t s) { r->x = a->x / s; r->y = a->y / s; r->z = a->z / s; r->w = a->w / s; }
 #define VM_VEC4F_IMPL(m,t)VM_VEC4_IMPL(m,t)VM_VECF_IMPL(m,t)\
+VM_API int m##eeq(const m *a, const m *b, t epsilon) { t xd = a->x - b->x, yd = a->y - b->y, zd = a->z - b->z, wd = a->w - b->w; return VABS(xd) <= epsilon && VABS(yd) <= epsilon && VABS(zd) <= epsilon && VABS(wd) <= epsilon; }\
 VM_API t m##dot(const m *a, const m *b) { return a->x * b->x + a->y * b->y + a->z * b->z + a->w * b->w; }
 #define VM_VEC3_IMPL(m,t)VM_VEC_IMPL(m,t)\
 VM_API void m##set(m *a, t x, t y, t z) { a->x = x; a->y = y; a->z = z; }\
@@ -610,6 +612,7 @@ VM_API void m##mulc(m *r, const m *a, t s) { r->x = a->x * s; r->y = a->y * s; r
 VM_API void m##div(m *r, const m *a, const m *b) { r->x = a->x / b->x; r->y = a->y / b->y; r->z = a->z / b->z; }\
 VM_API void m##divc(m *r, const m *a, t s) { r->x = a->x / s; r->y = a->y / s; r->z = a->z / s; }
 #define VM_VEC3F_IMPL(m,t)VM_VEC3_IMPL(m,t)VM_VECF_IMPL(m,t)\
+VM_API int m##eeq(const m *a, const m *b, t epsilon) { t xd = a->x - b->x, yd = a->y - b->y, zd = a->z - b->z; return VABS(xd) <= epsilon && VABS(yd) <= epsilon && VABS(zd) <= epsilon; }\
 VM_API void m##cross(m *r, const m *a, const m *b) { m##set(r, a->y*b->z - a->z*b->y, a->z*b->x - a->x*b->z, a->x*b->y - a->y*b->x); }\
 VM_API t m##dot(const m *a, const m *b) { return a->x * b->x + a->y * b->y + a->z * b->z; }
 #define VM_VEC2_IMPL(m,t)VM_VEC_IMPL(m,t)\
@@ -624,6 +627,7 @@ VM_API void m##mulc(m *r, const m *a, t s) { r->x = a->x * s; r->y = a->y * s; }
 VM_API void m##div(m *r, const m *a, const m *b) { r->x = a->x / b->x; r->y = a->y / b->y; }\
 VM_API void m##divc(m *r, const m *a, t s) { r->x = a->x / s; r->y = a->y / s; }
 #define VM_VEC2F_IMPL(m,t)VM_VEC2_IMPL(m,t)VM_VECF_IMPL(m,t)\
+VM_API int m##eeq(const m *a, const m *b, t epsilon) { t xd = a->x - b->x, yd = a->y - b->y; return VABS(xd) <= epsilon && VABS(yd) <= epsilon; }\
 VM_API t m##dot(const m *a, const m *b) { return a->x * b->x + a->y * b->y; }
 
 VM_VEC4F_IMPL(vec4, float)

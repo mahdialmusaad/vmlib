@@ -35,7 +35,7 @@ static void testtypes(void)
 
 static void testvec(void)
 {
-	vec4 v4_0 = VEC4I, v4_2 = VEC4S(2.0f), v4_m2 = VEC4S(-2.0f), v4_4 = VEC4S(4.0f), v4_5 = VEC4S(5.0f), v4_7 = VEC4S(7.0f);
+	vec4 v4_0 = VEC4I, v4_2 = VEC4S(2.0f), v4_m2 = VEC4S(-2.0f), v4_4 = VEC4S(4.0f), v4_5 = VEC4S(5.0f), v4_7 = VEC4S(7.0f), v4_701 = VEC4S(7.01f);
 	float v4_2li[4] = { 2.0f, 2.0f, 2.0f, 2.0f };
 	vec3 v3 = VEC3(2.0f, 3.0f, 4.0f), v3b = VEC3(5.0f, 6.0f, 7.0f), v3_c = VEC3(-3.0f, 6.0f, -3.0f), v3r = VEC3(-1.0f, 1.0f, 0.0f), v3n = VEC3(1.0f, 0.0f, 0.0f), v3rr = VEC3(1.0f, 1.0f, 0.0f);
 	vec3 v3fi = VEC3(1.0f, 2.0f, 3.0f), v3fn = VEC3(0.0f, 1.0f, 0.0f), v3fr = VEC3(1.0f, -2.0f, 3.0f);
@@ -63,6 +63,9 @@ static void testvec(void)
 	EXPECT((char *)&v4.w == (char *)&v4.d[3]);
 
 	EXPECT(memcmp(&v4_2, v4_2li, sizeof v4_2) == 0);
+	EXPECT(vec4eq(&v4_7, &v4_7));
+	EXPECT(vec4eeq(&v4_7, &v4_701, 0.1f));
+	EXPECT(!vec4eeq(&v4_7, &v4_701, 0.001f));
 	EXPECT((vec4add(&v4, &v4, &v4_5), vec4eq(&v4, &v4_7)));
 	EXPECT((vec4sub(&v4, &v4, &v4_5), vec4eq(&v4, &v4_2)));
 	EXPECT((vec4mul(&v4, &v4, &v4_2), vec4eq(&v4, &v4_4)));
@@ -97,7 +100,7 @@ static void testquat(void)
 	quat q5 = QUAT(1.0f, 1.0f, 1.0f, 1.0f);
 	quat q6 = QUAT(8.0f, 6.0f, 0.0f, 0.0f), q6r1 = QUAT(0.8f, 0.6f, 0.0f, 0.0f);
 	quat q7, q7r1 = QUAT(-0.718287051f, 0.310622454f, 0.44443506f, 0.435952842f); vec3 q7v1 = VEC3(1.0f, 2.0f, 3.0f);
-	quat q8 = QUAT(2.0f, 3.0f, 4.0f, 1.0f); vec3 q8vi, q8r1 = VEC3(2.4037776f, 1.57079637f, 1.91382027f);
+	quat q8 = QUAT(2.0f, 3.0f, 4.0f, 1.0f); vec3 q8vi, q8r1 = VEC3(1.42889929f, -1.57079637f, 2.3561945f);
 	quat q9, q9r1 = QUAT(0.707106769f, 1.41421354f, 2.12132025f, 0.707106769f); vec3 q9i = VEC3(1.0f, 2.0f, 3.0f);
 	quat q10 = QUAT(1.0f, 2.0f, 3.0f, 4.0f), q10i1 = QUAT(5.0f, 6.0f, 7.0f, 8.0f), q10r1 = QUAT(24.0f, 48.0f, 48.0f, -6.0f);
 	quat q11 = QUAT(10.0f, 20.0f, 30.0f, 2.0f), q11i = QUAT(10.0f, 20.0f, 30.0f, 0.2f); vec3 q11ri, q11r1 = VEC3(0.0f, 0.0f, 1.0f), q11r2 = VEC3(10.2062073f, 20.4124146f, 30.6186218f);
@@ -119,14 +122,14 @@ static void testquat(void)
 	EXPECT(quatlen(&q5) == 2.0f);
 	EXPECT((quatnormalize(&q6, &q6), quateeq(&q6, &q6r1, 0.001f)));
 	EXPECT((quatsetv(&q7, &q7v1), quateeq(&q7, &q7r1, 0.001f)));
-	//EXPECT((quateuler(&q8vi, &q8), vec3eq(&q8vi, &q8r1)));
+	EXPECT((quateuler(&q8vi, &q8), vec3eeq(&q8vi, &q8r1, 0.001f)));
 	EXPECT((quatangleaxis(&q9, &q9i, M_PI_2), quateeq(&q9, &q9r1, 0.001f)));
 	an = quatangle(&q9);
 	an -= 1.57079637f;
 	EXPECT(VABS(an) <= 0.001f);
 	EXPECT((quatmul(&q10, &q10, &q10i1), quateeq(&q10, &q10r1, 0.001f)));
 	EXPECT((quataxis(&q11, &q11ri), vec3eq(&q11ri, &q11r1)));
-	//EXPECT((quataxis(&q11i, &q11ri), vec3eq(&q11ri, &q11r2)));
+	EXPECT((quataxis(&q11i, &q11ri), vec3eeq(&q11ri, &q11r2, 0.001f)));
 }
 
 static void testmat(void)
