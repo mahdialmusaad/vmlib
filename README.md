@@ -11,7 +11,7 @@ Define `VM_IMPL` before including the library in **exactly one source file**. Al
 Other options:
 - `VM_STATIC`: Make all functions `static`, usually for using the library in one file only.
 - `VM_NOINLINE`: Do not add `inline` to the definitions when implementing the functions.
-- `VM_NO_MATH_H`: Use the fallback or user-defined math functions, even if `math.h` is found. 
+- `VM_NO_MATH_H`: Use the fallback or user-defined math functions, even if `math.h` is found.
 
 Documentation for individual functions can be found in the header file itself.
 ## Support

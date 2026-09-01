@@ -503,11 +503,11 @@ static VM_ATTRIBCONST double vm_sin(double _x)
 	double _rx = (tx > M_PI) ? (tx - M_PI * 2.0) : tx;
 	double x = _rx > M_PI_2 ? M_PI - _rx : (_rx < -M_PI_2 ? -M_PI - _rx : _rx);
 	double x2 = x * x;
-	return x * (1.0 + x2 * (-1.0 / 6.0 + 
-		x2 * (1.0 / 120.0 + 
-		x2 * (-1.0 / 5040.0 + 
-		x2 * (1.0 / 362880.0 + 
-		x2 * (-1.0 / 39916800.0 + 
+	return x * (1.0 + x2 * (-1.0 / 6.0 +
+		x2 * (1.0 / 120.0 +
+		x2 * (-1.0 / 5040.0 +
+		x2 * (1.0 / 362880.0 +
+		x2 * (-1.0 / 39916800.0 +
 		x2 * (1.0 / 6227020800.0)))))));
 }
 #endif
@@ -679,7 +679,7 @@ VM_API int quateeq(const quat *a, const quat *b, float epsilon)
 {
 	quat dif;
 	quatsub(&dif, a, b);
-	return VABS(dif.x) < epsilon && VABS(dif.y) < epsilon && VABS(dif.z) < epsilon && VABS(dif.w) < epsilon; 
+	return VABS(dif.x) < epsilon && VABS(dif.y) < epsilon && VABS(dif.z) < epsilon && VABS(dif.w) < epsilon;
 }
 
 VM_API void quatconjugate(quat *r, const quat *q) { r->x = -q->x; r->y = -q->y; r->z = -q->z; r->w = q->w; }

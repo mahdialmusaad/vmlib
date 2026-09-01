@@ -101,7 +101,7 @@ static void testquat(void)
 	quat q8 = QUAT(2.0f, 3.0f, 4.0f, 1.0f); vec3 q8vi, q8r1 = VEC3(2.4037776f, 1.57079637f, 1.91382027f);
 	quat q9, q9r1 = QUAT(0.707106769f, 1.41421354f, 2.12132025f, 0.707106769f); vec3 q9i = VEC3(1.0f, 2.0f, 3.0f);
 	quat q10 = QUAT(1.0f, 2.0f, 3.0f, 4.0f), q10i1 = QUAT(5.0f, 6.0f, 7.0f, 8.0f), q10r1 = QUAT(24.0f, 48.0f, 48.0f, -6.0f);
-	quat q11 = QUAT(10.0f, 20.0f, 30.0f, 2.0f), q11i = QUAT(10.0f, 20.0f, 30.0f, 0.2f); vec3 q11ri, q11r1 = VEC3(0.0f, 0.0f, 1.0f), q11r2 = VEC3(10.2062073f, 20.4124146f, 30.6186218f); 
+	quat q11 = QUAT(10.0f, 20.0f, 30.0f, 2.0f), q11i = QUAT(10.0f, 20.0f, 30.0f, 0.2f); vec3 q11ri, q11r1 = VEC3(0.0f, 0.0f, 1.0f), q11r2 = VEC3(10.2062073f, 20.4124146f, 30.6186218f);
 	float an;
 
 	EXPECT(sizeof(quat) == sizeof(vec4));
@@ -239,7 +239,7 @@ static double testfb_inner(vrand_os_st *rst, double (*approx_func)(double), doub
 {
 	int i;
 	double maxerr = 0.0;
-	
+
 	for (i = 0; i < NFB; ++i) {
 		unsigned int sx;
 		double x, approx, actual;
@@ -260,7 +260,7 @@ static double testfb_inner_2(vrand_os_st *rst, double (*approx_func)(double, dou
 {
 	int i;
 	double maxerr = 0.0;
-	
+
 	for (i = 0; i < NFB; ++i) {
 		unsigned int sx;
 		double x, y, approx, actual;
