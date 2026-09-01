@@ -71,7 +71,6 @@ static void testvec(void)
 	EXPECT((vec4divc(&v4, &v4, 2.0f), vec4eq(&v4, &v4_2)));
 	EXPECT((vec4clr(&v4), vec4eq(&v4, &v4_0)));
 	EXPECT((vec4set(&v4, 7.0f, 7.0f, 7.0f, 7.0f), vec4eq(&v4, &v4_7)));
-	EXPECT((vec4setv(&v4, &v4_5), vec4eq(&v4, &v4_5)));
 	EXPECT((vec4sets(&v4, 2.0f), vec4eq(&v4, &v4_2)));
 	EXPECT((vec4neg(&v4, &v4), vec4eq(&v4, &v4_m2)));
 

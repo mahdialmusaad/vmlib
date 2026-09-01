@@ -193,7 +193,6 @@ VM_VECDEF(uvec, unsigned)
 #define VM_VEC_DEF(m,t)\
 VM_API void m##clr(m *a);\
 VM_API void m##sets(m *a, t s);\
-VM_API void m##setv(m *a, const m *b);\
 VM_API void m##add(m *r, const m *a, const m *b);\
 VM_API void m##addc(m *r, const m *a, t s);\
 VM_API void m##sub(m *r, const m *a, const m *b);\
@@ -329,8 +328,6 @@ typedef mat4 mat4x4;
 #define MAT4(x) MAT4S(x)
 #define MAT4I MAT4S(1.f)
 
-/* Copy matrix m into r. */
-VM_API void mat4set(mat4 *r, const mat4 *m);
 /* Set diagonal of matrix to s and others to 0. */
 VM_API void mat4sets(mat4 *r, float s);
 /* Set matrix components using vectors. */
@@ -577,7 +574,6 @@ static VM_ATTRIBCONST double vm_atan2(double y, double x)
 
 #define VM_VEC_IMPL(m,t)\
 VM_API void m##clr(m *a) { m##sets(a, 0); }\
-VM_API void m##setv(m *a, const m *b) { vm_memcpy(a, b, sizeof *a); }\
 VM_API int m##eq(const m *a, const m *b) { return vm_memcmp(a, b, sizeof *a) == 0; }\
 VM_API void m##neg(m *r, const m *a) { m##mulc(r, a, (t)-1); }
 #define VM_VECF_IMPL(m,t)\
@@ -585,7 +581,7 @@ VM_API t m##length(const m *a) { return (t)vm_sqrt((double)m##dot(a,a)); }\
 VM_API t m##distance(const m *a, const m *b) { m c; m##sub(&c, a, b); return m##length(&c); }\
 VM_API void m##mix(m *r, const m *x, const m *y, t a) { m d; m##mulc(&d, y, a); m##mulc(r, x, 1 - a); m##add(r, r, &d); }\
 VM_API void m##normalize(m *r, const m *a) { t c = (t)1 / m##length(a); m##mulc(r, a, c); }\
-VM_API void m##faceforward(m *r, const m *N, const m *i, const m *Nref) { if (m##dot(Nref, i) < (t)0) m##setv(r, N); else m##neg(r, N); }\
+VM_API void m##faceforward(m *r, const m *N, const m *i, const m *Nref) { if (m##dot(Nref, i) < (t)0) *r = *N; else m##neg(r, N); }\
 VM_API void m##reflect(m *r, const m *i, const m *n) { t dni2 = m##dot(n, i) * (t)2; m##mulc(r, n, dni2); m##sub(r, i, r); }\
 VM_API void m##refract(m *r, const m *i, const m *n, t eta) { t dni = m##dot(n, i), k = (t)1.0 - eta * eta * ((t)1.0 - dni * dni); if (k < (t)0) m##clr(r); else { t b = eta * dni + (t)vm_sqrt((double)k); m tmp; m##mulc(&tmp, n, b); m##mulc(r, i, eta); m##sub(r, r, &tmp); } }
 
@@ -746,11 +742,6 @@ VM_API void quatrotate(vec3 *torot, const quat *q)
 	vec3add(torot, torot, &wm);
 }
 
-VM_API void mat4set(mat4 *r, const mat4 *m)
-{
-	int i;
-	for (i = 0; i < 16; ++i) r->d[i] = m->d[i];
-}
 VM_API void mat4sets(mat4 *r, float s)
 {
 	int i, j;
@@ -758,10 +749,10 @@ VM_API void mat4sets(mat4 *r, float s)
 }
 VM_API void mat4setv(mat4 *r, const vec4 *a, const vec4 *b, const vec4 *c, const vec4 *d)
 {
-	vec4setv(&r->v[0], a);
-	vec4setv(&r->v[1], b);
-	vec4setv(&r->v[2], c);
-	vec4setv(&r->v[3], d);
+	r->v[0] = *a;
+	r->v[1] = *b;
+	r->v[2] = *c;
+	r->v[3] = *d;
 }
 VM_API void mat4clr(mat4 *m)
 {
@@ -825,7 +816,7 @@ VM_API void mat4mul(mat4 *r, const mat4 *a, const mat4 *b)
 	vec4add(&tmp.v[3], &tmp.v[3], &t2);
 	vec4add(&tmp.v[3], &tmp.v[3], &t3);
 
-	mat4set(r, &tmp);
+	*r = tmp;
 }
 VM_API void mat4mulc(mat4 *r, const mat4 *m, float s)
 {
@@ -891,7 +882,7 @@ VM_API void mat4transpose(mat4 *r, const mat4 *m)
 	int i, j;
 	mat4 tmp;
 	for (i = 0; i < 4; ++i) for (j = 0; j < 4; ++j) tmp.n[i][j] = m->n[j][i];
-	mat4set(r, &tmp);
+	*r = tmp;
 }
 VM_API void mat4inverse(mat4 *r, const mat4 *m)
 {
@@ -975,15 +966,14 @@ VM_API void mat4inverse(mat4 *r, const mat4 *m)
 VM_API void mat4translate(mat4 *r, const mat4 *m, const vec3 *v)
 {
 	vec4 t1, t2;
-	mat4 tmp;
-	mat4set(&tmp, m);
+	mat4 tmp = *m;
 	vec4mulc(&tmp.v[3], &m->v[0], v->x);
 	vec4mulc(&t1, &m->v[1], v->y);
 	vec4mulc(&t2, &m->v[2], v->z);
 	vec4add(&t1, &t1, &t2);
 	vec4add(&tmp.v[3], &tmp.v[3], &t1);
 	vec4add(&tmp.v[3], &tmp.v[3], &m->v[3]);
-	mat4set(r, &tmp);
+	*r = tmp;
 }
 VM_API void mat4rotate(mat4 *r, const mat4 *m, float radians, const vec3 *v)
 {
@@ -1028,15 +1018,15 @@ VM_API void mat4rotate(mat4 *r, const mat4 *m, float radians, const vec3 *v)
 	vec4add(&tmp.v[2], &tmp.v[2], &t1);
 	vec4add(&tmp.v[2], &tmp.v[2], &t2);
 
-	vec4setv(&tmp.v[3], &m->v[3]);
-	mat4set(r, &tmp);
+	tmp.v[3] = m->v[3];
+	*r = tmp;
 }
 VM_API void mat4scale(mat4 *r, const mat4 *m, const vec3 *v)
 {
 	vec4mulc(&r->v[0], &m->v[0], v->x);
 	vec4mulc(&r->v[1], &m->v[1], v->y);
 	vec4mulc(&r->v[2], &m->v[2], v->z);
-	vec4setv(&r->v[3], &m->v[3]);
+	r->v[3] = m->v[3];
 }
 
 VM_API void mat4lookat(mat4 *m, const vec3 *campos, const vec3 *targetpos, const vec3 *up)

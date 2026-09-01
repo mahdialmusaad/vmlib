@@ -46,7 +46,6 @@ int main(void)
 
 	vec4set(&c, 1.0f, 3.0f, 3.0f, 7.0f);
 	vec4sets(&c, 2.0f); /* Set scalar - all components are 2.0f now. */
-	vec4setv(&c, &d); /* c = d */
 	vec4clr(&c); /* All components are 0.0f now. */
 
 	/* Operators: */
@@ -60,7 +59,6 @@ int main(void)
 
 	/* In C99+, compound literals are used so init macros can be used like normal variables.
 	   Otherwise (C89), they can only be used for variable initialization. */
-	vec4setv(&c, &VEC4(1.0f, 2.0f, 3.0f, 4.0f));
 	vec4add(&c, &c, &VEC4(12.0f, 34.0f, 56.0f, 78.0f));
 
 	/* Other vector operations are available as well: */
