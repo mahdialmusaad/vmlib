@@ -88,6 +88,48 @@ static void testvec(void)
 	EXPECT((vec2faceforward(&v2ff2, &v2ff2, &v2ff2n, &v2ff2n), vec2eq(&v2ff2, &v2ff2r)));
 }
 
+static void testquat(void)
+{
+	quat q0 = QUATA(0.0f, 100.0f, 200.0f), q0i1 = q0, q0i2 = QUATA(0.0f, 99.999f, 199.999f), q0i3 = QUATA(0.0f, 99.999f, 199.989f);
+	quat q1 = QUATA(1.0f, 2.0f, 3.0f), q1r1 = QUAT(2.0f, 4.0f, 6.0f, 2.0f), q1r2 = q1;
+	quat q2 = QUATA(5.0f, -2.0f, 0.0f), q2i = QUATA(-5.0f, 2.0f, 0.0f), q2r1 = QUAT(0.0f, 0.0f, 0.0f, 2.0f);
+	quat q3 = QUATA(-10.0f, -2.0f, 5.0f), q3i = QUATA(5.0f, -2.0f, 1.0f), q3r1 = QUAT(-15.0f, 0.0f, 4.0f, 0.0f);
+	quat q4 = QUATA(16.0f, 8.0f, 2.0f), q4r1 = QUAT(4.0f, 2.0f, 0.5f, 0.25f), q4r2 = QUAT(-4.0f, -2.0f, -0.5f, -0.25f), q4r3 = QUAT(4.0f, 2.0f, 0.5f, -0.25f);
+	quat q5 = QUAT(1.0f, 1.0f, 1.0f, 1.0f);
+	quat q6 = QUAT(8.0f, 6.0f, 0.0f, 0.0f), q6r1 = QUAT(0.8f, 0.6f, 0.0f, 0.0f);
+	quat q7, q7r1 = QUAT(-0.718287051f, 0.310622454f, 0.44443506f, 0.435952842f); vec3 q7v1 = VEC3(1.0f, 2.0f, 3.0f);
+	quat q8 = QUAT(2.0f, 3.0f, 4.0f, 1.0f); vec3 q8vi, q8r1 = VEC3(2.4037776f, 1.57079637f, 1.91382027f);
+	quat q9, q9r1 = QUAT(0.707106769f, 1.41421354f, 2.12132025f, 0.707106769f); vec3 q9i = VEC3(1.0f, 2.0f, 3.0f);
+	quat q10 = QUAT(1.0f, 2.0f, 3.0f, 4.0f), q10i1 = QUAT(5.0f, 6.0f, 7.0f, 8.0f), q10r1 = QUAT(24.0f, 48.0f, 48.0f, -6.0f);
+	quat q11 = QUAT(10.0f, 20.0f, 30.0f, 2.0f), q11i = QUAT(10.0f, 20.0f, 30.0f, 0.2f); vec3 q11ri, q11r1 = VEC3(0.0f, 0.0f, 1.0f), q11r2 = VEC3(10.2062073f, 20.4124146f, 30.6186218f); 
+	float an;
+
+	EXPECT(sizeof(quat) == sizeof(vec4));
+	EXPECT(q0.w == 1.0f);
+	EXPECT(quateq(&q0, &q0i1));
+	EXPECT(quateeq(&q0, &q0i2, 0.01f));
+	EXPECT(!quateeq(&q0, &q0i3, 0.01f));
+	EXPECT((quatmuls(&q1, &q1, 2.0f), quateeq(&q1, &q1r1, 0.001f)));
+	EXPECT((quatdivs(&q1, &q1, 2.0f), quateeq(&q1, &q1r2, 0.001f)));
+	EXPECT((quatadd(&q2, &q2, &q2i), quateeq(&q2, &q2r1, 0.001f)));
+	EXPECT((quatsub(&q3, &q3, &q3i), quateeq(&q3, &q3r1, 0.001f)));
+	EXPECT((quatdivs(&q4, &q4, 4.0f), quateeq(&q4, &q4r1, 0.001f)));
+	EXPECT((quatneg(&q4, &q4), quateeq(&q4, &q4r2, 0.001f)));
+	EXPECT((quatconjugate(&q4, &q4), quateeq(&q4, &q4r3, 0.001f)));
+	EXPECT(quatdot(&q5, &q5) == 4.0f);
+	EXPECT(quatlen(&q5) == 2.0f);
+	EXPECT((quatnormalize(&q6, &q6), quateeq(&q6, &q6r1, 0.001f)));
+	EXPECT((quatsetv(&q7, &q7v1), quateeq(&q7, &q7r1, 0.001f)));
+	//EXPECT((quateuler(&q8vi, &q8), vec3eq(&q8vi, &q8r1)));
+	EXPECT((quatangleaxis(&q9, &q9i, M_PI_2), quateeq(&q9, &q9r1, 0.001f)));
+	an = quatangle(&q9);
+	an -= 1.57079637f;
+	EXPECT(VABS(an) <= 0.001f);
+	EXPECT((quatmul(&q10, &q10, &q10i1), quateeq(&q10, &q10r1, 0.001f)));
+	EXPECT((quataxis(&q11, &q11ri), vec3eq(&q11ri, &q11r1)));
+	//EXPECT((quataxis(&q11i, &q11ri), vec3eq(&q11ri, &q11r2)));
+}
+
 static void testmat(void)
 {
 	mat4 identity = MAT4I, a = MAT4S(.7f), b = MAT4A(1.f,1.f,1.f,1.f,2.f,2.f,2.f,2.f,0.5f,0.5f,0.5f,0.5f,1.0f,1.0f,1.0f,1.0f);
@@ -191,48 +233,80 @@ static void testrand(void)
 	EXPECT(fgmax - fgmin < 1500);
 }
 
+#define NFB 20000
+
+static double testfb_inner(vrand_os_st *rst, double (*approx_func)(double), double (*actual_func)(double), int zo)
+{
+	int i;
+	double maxerr = 0.0;
+	
+	for (i = 0; i < NFB; ++i) {
+		unsigned int sx;
+		double x, approx, actual;
+		vrand_os(rst, &sx, sizeof sx);
+		x = (double)sx;
+		x /= (double)UINT16_MAX;
+		if (zo) { x /= (double)UINT16_MAX; x = x > 1.0 ? 1.0 : x; }
+		approx = approx_func(x);
+		actual = actual_func(x);
+		approx -= actual;
+		maxerr += VABS(approx);
+	}
+
+	return maxerr;
+}
+
+static double testfb_inner_2(vrand_os_st *rst, double (*approx_func)(double, double), double (*actual_func)(double, double), int zo)
+{
+	int i;
+	double maxerr = 0.0;
+	
+	for (i = 0; i < NFB; ++i) {
+		unsigned int sx;
+		double x, y, approx, actual;
+		vrand_os(rst, &sx, sizeof sx);
+		x = (double)sx;
+		x /= (double)UINT16_MAX;
+		if (zo) { x /= (double)UINT16_MAX; x = x > 1.0 ? 1.0 : x; }
+		vrand_os(rst, &sx, sizeof sx);
+		y = (double)sx;
+		y /= (double)UINT16_MAX;
+		if (zo) { y /= (double)UINT16_MAX; y = y > 1.0 ? 1.0 : y; }
+		approx = approx_func(x, y);
+		actual = actual_func(x, y);
+		approx -= actual;
+		maxerr += VABS(approx);
+	}
+
+	return maxerr;
+}
+
 static void testfb(void)
 {
 	int i;
-	double maxerr_sqrt = 0.0;
-	double maxerr_sin = 0.0;
-	double maxerr_cos = 0.0;
-	double maxerr_tan = 0.0;
-
 	vrand_os_st os_rng;
+	double e_sqrt, e_sin, e_cos, e_tan, e_asin, e_acos, e_atan2;
 	vrand_os_init(&os_rng);
 
-	for (i = 0; i < 10000; ++i) {
-		short sx;
-		double x;
-		
-		double sqrt_approx, sqrt_actual, sqrt_error;
-		double sin_approx, sin_actual, sin_error;
-		double cos_approx, cos_actual, cos_error;
-		double tan_approx, tan_actual, tan_error;
-		
-		vrand_os(&os_rng, &sx, sizeof sx);
-		x = (double)sx;
+	e_sqrt = testfb_inner(&os_rng, vm_sqrt, sqrt, 0);
+	e_sin = testfb_inner(&os_rng, vm_sin, sin, 0);
+	e_cos = testfb_inner(&os_rng, vm_cos, cos, 0);
+	e_tan = testfb_inner(&os_rng, vm_tan, tan, 0);
+	e_asin = testfb_inner(&os_rng, vm_asin, asin, 1);
+	e_acos = testfb_inner(&os_rng, vm_acos, acos, 1);
+	e_atan2 = testfb_inner_2(&os_rng, vm_atan2, atan2, 0);
 
-		sqrt_approx = vm_sqrt(VABS(x)); sqrt_actual = sqrt(VABS(x)); sqrt_error = sqrt_approx - sqrt_actual;
-		sin_approx = vm_sin(x); sin_actual = sin(x); sin_error = sin_approx - sin_actual;
-		cos_approx = vm_cos(x); cos_actual = cos(x); cos_error = cos_approx - cos_actual;
-		tan_approx = vm_tan(x); tan_actual = tan(x); tan_error = tan_approx - tan_actual;
-	
-		maxerr_sqrt += VABS(sqrt_error);
-		maxerr_sin += VABS(sin_error);
-		maxerr_cos += VABS(cos_error);
-		maxerr_tan += VABS(tan_error);
-	}
+	printf("TRIG ERRORS:\tsqrt: %f sin: %f cos: %f tan: %f asin: %f acos: %f atan2: %f\n", e_sqrt, e_sin, e_cos, e_tan, e_asin, e_acos, e_atan2);
 
 	vrand_os_destroy(&os_rng);
 
-	printf("TRIG ERRORS:\tsqrt: %f sin: %f cos: %f tan: %f\n", maxerr_sqrt, maxerr_sin, maxerr_cos, maxerr_tan);
-
-	EXPECT(maxerr_sqrt < 0.1);
-	EXPECT(maxerr_sin < 0.1);
-	EXPECT(maxerr_cos < 0.1);
-	EXPECT(maxerr_tan < 0.1);
+	EXPECT(e_sqrt < 0.05);
+	EXPECT(e_sin < 0.05);
+	EXPECT(e_cos < 0.05);
+	EXPECT(e_tan < 0.05);
+	EXPECT(e_asin < 0.05);
+	EXPECT(e_acos < 0.05);
+	EXPECT(e_atan2 < 0.05);
 }
 
 static float testnoise_vnoise3d(vnoise *n, double x, double y) { return vnoise3d(n, x, y, g_zcoord); }
@@ -292,6 +366,7 @@ int main(void)
 
 	testtypes();
 	testvec();
+	testquat();
 	testmat();
 	testrand();
 	testfb();

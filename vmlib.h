@@ -119,6 +119,8 @@ typedef long vm_i64;
 # define vm_sin sin
 # define vm_cos cos
 # define vm_tan tan
+# define vm_asin asin
+# define vm_atan2 atan2
 #else
 # ifndef vm_sqrt
 #  define VM_NEEDMATH_SQRT
@@ -131,6 +133,15 @@ typedef long vm_i64;
 # endif
 # ifndef vm_tan
 #  define VM_NEEDMATH_TAN
+# endif
+# ifndef vm_asin
+#  define VM_NEEDMATH_ASIN
+# endif
+# ifndef vm_acos
+#  define VM_NEEDMATH_ACOS
+# endif
+# ifndef vm_atan2
+#  define VM_NEEDMATH_ATAN2
 # endif
 #endif
 
@@ -245,6 +256,56 @@ VM_VEC2_DEF(uvec2, unsigned)
 #define VEC2I VEC2S(0)
 #define VEC3I VEC3S(0)
 #define VEC4I VEC4S(0)
+
+/* Quaternion definition. Same memory layout as vec4. */
+
+VM_PACK_START(4)
+typedef union quat { float d[4]; vec4 v; struct { union { struct { float x, y, z; }; vec3 xyz; }; float w; }; } VM_PACK_MID(4) quat;
+VM_PACK_END
+
+VM_API void quatset(quat *q, float x, float y, float z, float w);
+VM_API void quatseta(quat *q, float x, float y, float z);
+VM_API void quatsetv(quat *q, const vec3 *v);
+VM_API void quatclr(quat *q);
+
+VM_API void quatneg(quat *r, const quat *q);
+VM_API void quatadd(quat *r, const quat *a, const quat *b);
+VM_API void quatsub(quat *r, const quat *a, const quat *b);
+VM_API void quatmul(quat *r, const quat *a, const quat *b);
+VM_API void quatmuls(quat *r, const quat *q, float s);
+VM_API void quatdivs(quat *r, const quat *q, float s);
+
+VM_API int quateq(const quat *a, const quat *b);
+VM_API int quateeq(const quat *a, const quat *b, float epsilon);
+
+VM_API void quatconjugate(quat *r, const quat *q);
+VM_API float quatdot(const quat *a, const quat *b);
+VM_API float quatlen(const quat *q);
+VM_API void quatnormalize(quat *r, const quat *q);
+
+VM_API float quatpitch(const quat *q);
+VM_API float quatroll(const quat *q);
+VM_API float quatyaw(const quat *q);
+
+VM_API void quateuler(vec3 *eulerres, const quat *q);
+VM_API float quatangle(const quat *q);
+VM_API void quataxis(const quat *q, vec3 *v);
+VM_API void quatangleaxis(quat *r, const vec3 *v, float rad);
+VM_API void quatrotate(vec3 *torot, const quat *q);
+
+#if VM_CVER == 198900L
+# define QUATW(x, y, z, w) {{ x, y, z, w }}
+# define QUATA(x, y, z) {{ x, y, z, 1.0f }}
+# define QUATV(v, w) {{ v.x, v.y, v.z, w }}
+# define QUATI {{ 0.0f, 0.0f, 0.0f, 1.0f }}
+#else
+# define QUATW(x, y, z, w) (quat){{ x, y, z, w }}
+# define QUATA(x, y, z) (quat){{ x, y, z, 1.0f }}
+# define QUATV(v, w) (quat){{ v.x, v.y, v.z, w }}
+# define QUATI (quat){{ 0.0f, 0.0f, 0.0f, 1.0f }}
+#endif
+
+#define QUAT QUATW
 
 /* 4x4 matrix definition. Same notes written above (on vectors) apply here.
    View transformation functions assume right-handed and -1 to 1 depth. */
@@ -434,28 +495,82 @@ static VM_ATTRIBCONST double vm_sqrt(double x)
 #ifdef VM_NEEDMATH_SIN
 static VM_ATTRIBCONST double vm_sin(double _x)
 {
-	double tx = _x -= ((double)((int)(_x / (M_PI * 2.0)))) * (M_PI * 2.0);
-	double x = tx > M_PI ? (tx - M_PI * 2.0) : (tx < -M_PI ? tx + M_PI * 2.0 : tx); 
+	double q = _x / (M_PI * 2.0);
+	double _n = (q + 6755399441055744.0) - 6755399441055744.0;
+	double n = _n > q ? _n - 1.0 : _n;
+	double _tx = _x - n * M_PI * 2.0;
+	double tx = _tx < 0.0 ? _tx + M_PI * 2.0 : _tx;
+	double _rx = (tx > M_PI) ? (tx - M_PI * 2.0) : tx;
+	double x = _rx > M_PI_2 ? M_PI - _rx : (_rx < -M_PI_2 ? -M_PI - _rx : _rx);
 	double x2 = x * x;
-	double x3 = x2 * x, f3 = 6.0, x5 = x3 * x2, f5 = 120.0;
-	double x7 = x5 * x2, f7 = 5040.0, x9 = x7 * x2, f9 = 362880.0;
-	double x11 = x9 * x2, f11 = 39916800.0, x13 = x11 * x2, f13 = 6227020800.0;
-	return x - (x3/f3) + (x5/f5) - (x7/f7) + (x9/f9) - (x11/f11) + (x13/f13);
+	return x * (1.0 + x2 * (-1.0 / 6.0 + 
+		x2 * (1.0 / 120.0 + 
+		x2 * (-1.0 / 5040.0 + 
+		x2 * (1.0 / 362880.0 + 
+		x2 * (-1.0 / 39916800.0 + 
+		x2 * (1.0 / 6227020800.0)))))));
 }
 #endif
 #ifdef VM_NEEDMATH_COS
-static VM_ATTRIBCONST double vm_cos(double _x)
+static VM_ATTRIBCONST double vm_cos(double x)
 {
-	double tx = _x -= ((double)((int)(_x / (M_PI * 2.0)))) * (M_PI * 2.0);
-	double x = tx > M_PI ? (tx - M_PI * 2.0) : (tx < -M_PI ? tx + M_PI * 2.0 : tx); 
-	double x2 = x * x, f2 = 2.0, x4 = x2 * x2, f4 = 24.0;
-	double x6 = x4 * x2, f6 = 720.0, x8 = x6 * x2, f8 = 40320.0;
-	double x10 = x8 * x2, f10 = 3628800.0, x12 = x10 * x2, f12 = 479001600.0;
-	return 1.0 - (x2/f2) + (x4/f4) - (x6/f6) + (x8/f8) - (x10/f10) + (x12/f12);
+	return vm_sin(x + M_PI_2);
+}
+#endif
+#ifdef VM_NEEDMATH_SIN
+static VM_ATTRIBCONST double vm_asin(double x)
+{
+	double g;
+	int i;
+	if (x > 1.0 || x < -1.0) return 0.0;
+	g = 0.0;
+	for (i = 0; i < 20; ++i) g -= (vm_sin(g) - x) / vm_cos(g);
+	return g;
 }
 #endif
 #ifdef VM_NEEDMATH_TAN
-# define vm_tan(x) (vm_sin(x) / vm_cos(x))
+static VM_ATTRIBCONST double vm_tan(double x)
+{
+	return vm_sin(x) / vm_cos(x);
+}
+#endif
+#ifdef VM_NEEDMATH_ASIN
+static VM_ATTRIBCONST double vm_atan(double x)
+{
+	double g;
+	int i;
+	if (x > 1.0) return M_PI_2 - vm_atan(1.0 / x);
+	else if (x < -1.0) return -vm_atan(-x);
+	g = x;
+	for (i = 0; i < 20; ++i) {
+		double b = vm_tan(g);
+		g -= (b - x) / (1.0 + b * b);
+	}
+	return g;
+}
+#endif
+#ifdef VM_NEEDMATH_ACOS
+static VM_ATTRIBCONST double vm_acos(double x)
+{
+	double g;
+	int i;
+	if (x > 1.0 || x < -1.0) return 0.0;
+	g = M_PI_2;
+	for (i = 0; i < 20; ++i) g += (vm_cos(g) - x) / vm_sin(g);
+	return g;
+}
+#endif
+#ifdef VM_NEEDMATH_ATAN2
+static VM_ATTRIBCONST double vm_atan2(double y, double x)
+{
+	double base;
+	if (x == 0.0 && y == 0.0) return 0.0;
+	else if (x == 0.0) return y > 0.0 ? M_PI_2 : -M_PI_2;
+	base = vm_atan(y / x);
+	if (x > 0.0) return base;
+	else if (y >= 0.0) return base + M_PI;
+	else return base - M_PI;
+}
 #endif
 
 /* ---------- Mathematical vectors ---------- */
@@ -529,6 +644,107 @@ VM_VEC2F_IMPL(vec2, float)
 VM_VEC2F_IMPL(dvec2, double)
 VM_VEC2_IMPL(ivec2, int)
 VM_VEC2_IMPL(uvec2, unsigned)
+
+VM_API void quatset(quat *q, float x, float y, float z, float w) { q->x = x; q->y = y; q->z = z; q->w = w; }
+VM_API void quatseta(quat *q, float x, float y, float z) { q->x = x; q->y = y; q->z = z; q->w = 1.0f; }
+VM_API void quatsetv(quat *q, const vec3 *v)
+{
+	vec3 c, s, h;
+	vec3mulc(&h, v, 0.5f);
+	vec3set(&c, vm_cos(h.x), vm_cos(h.y), vm_cos(h.z));
+	vec3set(&s, vm_sin(h.x), vm_sin(h.y), vm_sin(h.z));
+	q->x = s.x * c.y * c.z - c.x * s.y * s.z;
+	q->y = c.x * s.y * c.z + s.x * c.y * s.z;
+	q->z = c.x * c.y * s.z - s.x * s.y * c.z;
+	q->w = c.x * c.y * c.z + s.x * s.y * s.z;
+}
+VM_API void quatclr(quat *q) { q->x = 0.0f; q->y = 0.0f; q->z = 0.0f; q->w = 1.0f; }
+
+VM_API void quatneg(quat *r, const quat *q) { r->x = -q->x; r->y = -q->y; r->z = -q->z; r->w = -q->w; }
+VM_API void quatadd(quat *r, const quat *a, const quat *b) { r->x = a->x + b->x; r->y = a->y + b->y; r->z = a->z + b->z; r->w = a->w + b->w; }
+VM_API void quatsub(quat *r, const quat *a, const quat *b) { r->x = a->x - b->x; r->y = a->y - b->y; r->z = a->z - b->z; r->w = a->w - b->w; }
+VM_API void quatmul(quat *r, const quat *a, const quat *b)
+{
+	float x = a->w * b->x + a->x * b->w + a->y * b->z - a->z * b->y;
+	float y = a->w * b->y + a->y * b->w + a->z * b->x - a->x * b->z;
+	float z = a->w * b->z + a->z * b->w + a->x * b->y - a->y * b->x;
+	float w = a->w * b->w - a->x * b->x - a->y * b->y - a->z * b->z;
+	r->x = x; r->y = y; r->z = z; r->w = w;
+}
+VM_API void quatmuls(quat *r, const quat *q, float s) { r->x = q->x * s; r->y = q->y * s; r->z = q->z * s; r->w = q->w * s; }
+VM_API void quatdivs(quat *r, const quat *q, float s) { r->x = q->x / s; r->y = q->y / s; r->z = q->z / s; r->w = q->w / s; }
+
+VM_API int quateq(const quat *a, const quat *b) { return vm_memcmp(a, b, sizeof *a) == 0; }
+VM_API int quateeq(const quat *a, const quat *b, float epsilon)
+{
+	quat dif;
+	quatsub(&dif, a, b);
+	return VABS(dif.x) < epsilon && VABS(dif.y) < epsilon && VABS(dif.z) < epsilon && VABS(dif.w) < epsilon; 
+}
+
+VM_API void quatconjugate(quat *r, const quat *q) { r->x = -q->x; r->y = -q->y; r->z = -q->z; r->w = q->w; }
+VM_API float quatdot(const quat *a, const quat *b) { return a->x * b->x + a->y * b->y + a->z * b->z + a->w * b->w; }
+VM_API float quatlen(const quat *q) { return vm_sqrt(quatdot(q, q)); }
+VM_API void quatnormalize(quat *r, const quat *q) { float inv = (float)(1.0 / quatlen(q)); r->x = q->x * inv; r->y = q->y * inv; r->z = q->z * inv; r->w = q->w * inv; }
+
+VM_API float quatpitch(const quat *q)
+{
+	return (float)vm_atan2(
+		(double)(2.0f * (q->y * q->z + q->w * q->x)),
+		(double)(q->w * q->w - q->x * q->x - q->y * q->y + q->z * q->z)
+	);
+}
+VM_API float quatroll(const quat *q)
+{
+	return (float)vm_atan2(
+		(double)(2.0f * (q->x * q->y + q->w * q->z)),
+		(double)(q->w * q->w + q->x * q->x - q->y * q->y - q->z * q->z)
+	);
+}
+VM_API float quatyaw(const quat *q)
+{
+	double r = (double)(-2.0f * (q->x * q->z - q->w * q->y));
+	return (float)vm_asin(VCLAMP(r, -1.0, 1.0));
+}
+
+VM_API void quateuler(vec3 *eulerres, const quat *q)
+{
+	eulerres->x = quatpitch(q);
+	eulerres->y = quatyaw(q);
+	eulerres->z = quatroll(q);
+}
+VM_API float quatangle(const quat *q)
+{
+	if (VABS(q->w) <= 0.87758256f) return vm_acos(q->w) * 2.0f;
+	float a = vm_asin(vm_sqrt(vec3dot(&q->xyz, &q->xyz))) * 2.0f;
+	return q->w < 0.0f ? M_PI * 2.0f - a : a;
+}
+VM_API void quataxis(const quat *q, vec3 *v)
+{
+	float s = 1.0f - q->w * q->w;
+	if (s <= 0.0f) vec3set(v, 0.0f, 0.0f, 1.0f);
+	else {
+		s = 1.0f / vm_sqrt(s);
+		vec3set(v, q->x * s, q->y * s, q->z * s);
+	}
+}
+VM_API void quatangleaxis(quat *r, const vec3 *v, float rad)
+{
+	vec3 ra;
+	float h = rad * 0.5f;
+	vec3mulc(&ra, v, (float)vm_cos(h));
+	quatset(r, ra.x, ra.y, ra.z, (float)vm_sin(h));
+}
+VM_API void quatrotate(vec3 *torot, const quat *q)
+{
+	vec3 dc, wm, fc;
+	vec3cross(&dc, &q->xyz, torot);
+	vec3mulc(&dc, &dc, 2.0f);
+	vec3mulc(&wm, &dc, q->w);
+	vec3cross(&fc, &q->xyz, &dc);
+	vec3add(&wm, &wm, &fc);
+	vec3add(torot, torot, &wm);
+}
 
 VM_API void mat4set(mat4 *r, const mat4 *m)
 {

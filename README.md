@@ -16,8 +16,8 @@ Other options:
 Documentation for individual functions can be found in the header file itself.
 ## Support
 The implementation is written in pure C89, but some macros and structures make use of compiler extensions which are standard in at most C11.<br>
-Support for thread-local, inline and attributes (const, pure) are checked for, as well as header availability. It uses `sqrt`, `sin`, `cos` and `tan` for vector/matrix calculations, so make sure to link the math library if needed (usually with `-lm`).<br>
-If these are not available, a fallback implementation will be used, but you can override the fallback by defining your own (same function name, prefixed with `vm_`).
+Support for thread-local, inline and attributes (const, pure) are checked for, as well as header availability. It uses `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos` and `atan2` for vector/quaternion/matrix calculations, so make sure to link the math library if needed (usually with `-lm`).<br>
+If `math.h` is unavailable, a fallback implementation will be used, but you can override the fallback by defining your own (same function name, prefixed with `vm_`).
 ## Example
 Below is some example usage of the library for different scenarios.
 ### Vectors
