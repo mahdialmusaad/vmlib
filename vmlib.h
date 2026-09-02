@@ -120,6 +120,7 @@ typedef long vm_i64;
 # define vm_cos cos
 # define vm_tan tan
 # define vm_asin asin
+# define vm_acos acos
 # define vm_atan2 atan2
 #else
 # ifndef vm_sqrt
