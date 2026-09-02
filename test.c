@@ -237,20 +237,29 @@ static void testrand(void)
 
 #define NFB 20000
 
-static double testfb_inner(vrand_os_st *rst, double (*approx_func)(double), double (*actual_func)(double), int zo)
+static double testfb_val(vrand_os_st *rnd_st, int rnd_type)
+{
+	int32_t val;
+	double val_dec;
+	vrand_os(rnd_st, &val, sizeof val);
+	val_dec = ((double)val) / (double)UINT16_MAX;
+	if (rnd_type == 0) return VABS(val_dec);
+	else if (rnd_type == 1) return val_dec * (M_PI / (double)0x4000);
+	else {
+		val_dec *= (1.0 / 32768.0);
+		return VCLAMP(val_dec, -1.0, 1.0);
+	}
+}
+
+static double testfb_inner(vrand_os_st *rnd_st, double (*approx_func)(double), double (*actual_func)(double), int rnd_type)
 {
 	int i;
 	double maxerr = 0.0;
 
 	for (i = 0; i < NFB; ++i) {
-		unsigned int sx;
-		double x, approx, actual;
-		vrand_os(rst, &sx, sizeof sx);
-		x = (double)sx;
-		x /= (double)UINT16_MAX;
-		if (zo) { x /= (double)UINT16_MAX; x = x > 1.0 ? 1.0 : x; }
-		approx = approx_func(x);
-		actual = actual_func(x);
+		double x = testfb_val(rnd_st, rnd_type);
+		double approx = approx_func(x);
+		double actual = actual_func(x);
 		approx -= actual;
 		maxerr += VABS(approx);
 	}
@@ -258,24 +267,15 @@ static double testfb_inner(vrand_os_st *rst, double (*approx_func)(double), doub
 	return maxerr;
 }
 
-static double testfb_inner_2(vrand_os_st *rst, double (*approx_func)(double, double), double (*actual_func)(double, double), int zo)
+static double testfb_inner_2(vrand_os_st *rnd_st, double (*approx_func)(double, double), double (*actual_func)(double, double), int rnd_type)
 {
 	int i;
 	double maxerr = 0.0;
 
 	for (i = 0; i < NFB; ++i) {
-		unsigned int sx;
-		double x, y, approx, actual;
-		vrand_os(rst, &sx, sizeof sx);
-		x = (double)sx;
-		x /= (double)UINT16_MAX;
-		if (zo) { x /= (double)UINT16_MAX; x = x > 1.0 ? 1.0 : x; }
-		vrand_os(rst, &sx, sizeof sx);
-		y = (double)sx;
-		y /= (double)UINT16_MAX;
-		if (zo) { y /= (double)UINT16_MAX; y = y > 1.0 ? 1.0 : y; }
-		approx = approx_func(x, y);
-		actual = actual_func(x, y);
+		double x = testfb_val(rnd_st, rnd_type), y = testfb_val(rnd_st, rnd_type);
+		double approx = approx_func(x, y);
+		double actual = actual_func(x, y);
 		approx -= actual;
 		maxerr += VABS(approx);
 	}
@@ -291,12 +291,12 @@ static void testfb(void)
 	vrand_os_init(&os_rng);
 
 	e_sqrt = testfb_inner(&os_rng, vm_sqrt, sqrt, 0);
-	e_sin = testfb_inner(&os_rng, vm_sin, sin, 0);
-	e_cos = testfb_inner(&os_rng, vm_cos, cos, 0);
-	e_tan = testfb_inner(&os_rng, vm_tan, tan, 0);
-	e_asin = testfb_inner(&os_rng, vm_asin, asin, 1);
-	e_acos = testfb_inner(&os_rng, vm_acos, acos, 1);
-	e_atan2 = testfb_inner_2(&os_rng, vm_atan2, atan2, 0);
+	e_sin = testfb_inner(&os_rng, vm_sin, sin, 1);
+	e_cos = testfb_inner(&os_rng, vm_cos, cos, 1);
+	e_tan = testfb_inner(&os_rng, vm_tan, tan, 1);
+	e_asin = testfb_inner(&os_rng, vm_asin, asin, 2);
+	e_acos = testfb_inner(&os_rng, vm_acos, acos, 2);
+	e_atan2 = testfb_inner_2(&os_rng, vm_atan2, atan2, 1);
 
 	printf("TRIG ERRORS:\tsqrt: %f sin: %f cos: %f tan: %f asin: %f acos: %f atan2: %f\n", e_sqrt, e_sin, e_cos, e_tan, e_asin, e_acos, e_atan2);
 
