@@ -122,7 +122,7 @@ static void testquat(void)
 	EXPECT(quatlen(&q5) == 2.0f);
 	EXPECT((quatnormalize(&q6, &q6), quateeq(&q6, &q6r1, 0.001f)));
 	EXPECT((quatsetv(&q7, &q7v1), quateeq(&q7, &q7r1, 0.001f)));
-	EXPECT((quateuler(&q8vi, &q8), vec3eeq(&q8vi, &q8r1, 0.001f)));
+	EXPECT((quateulerangles(&q8vi, &q8), vec3eeq(&q8vi, &q8r1, 0.001f)));
 	EXPECT((quatangleaxis(&q9, &q9i, M_PI_2), quateeq(&q9, &q9r1, 0.001f)));
 	an = quatangle(&q9);
 	an -= 1.57079637f;

@@ -287,7 +287,7 @@ VM_API float quatpitch(const quat *q);
 VM_API float quatroll(const quat *q);
 VM_API float quatyaw(const quat *q);
 
-VM_API void quateuler(vec3 *eulerres, const quat *q);
+VM_API void quateulerangles(vec3 *eulerres, const quat *q);
 VM_API float quatangle(const quat *q);
 VM_API void quataxis(const quat *q, vec3 *v);
 VM_API void quatangleaxis(quat *r, const vec3 *v, float rad);
@@ -702,7 +702,7 @@ VM_API float quatyaw(const quat *q)
 	return (float)vm_asin(VCLAMP(r, -1.0, 1.0));
 }
 
-VM_API void quateuler(vec3 *eulerres, const quat *q)
+VM_API void quateulerangles(vec3 *eulerres, const quat *q)
 {
 	eulerres->x = quatpitch(q);
 	eulerres->y = quatyaw(q);
