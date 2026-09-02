@@ -515,17 +515,6 @@ static VM_ATTRIBCONST double vm_cos(double x)
 	return vm_sin(x + M_PI_2);
 }
 #endif
-#ifdef VM_NEEDMATH_SIN
-static VM_ATTRIBCONST double vm_asin(double x)
-{
-	double g;
-	int i;
-	if (x > 1.0 || x < -1.0) return 0.0;
-	g = 0.0;
-	for (i = 0; i < 20; ++i) g -= (vm_sin(g) - x) / vm_cos(g);
-	return g;
-}
-#endif
 #ifdef VM_NEEDMATH_TAN
 static VM_ATTRIBCONST double vm_tan(double x)
 {
@@ -533,17 +522,13 @@ static VM_ATTRIBCONST double vm_tan(double x)
 }
 #endif
 #ifdef VM_NEEDMATH_ASIN
-static VM_ATTRIBCONST double vm_atan(double x)
+static VM_ATTRIBCONST double vm_asin(double x)
 {
 	double g;
 	int i;
-	if (x > 1.0) return M_PI_2 - vm_atan(1.0 / x);
-	else if (x < -1.0) return -vm_atan(-x);
-	g = x;
-	for (i = 0; i < 20; ++i) {
-		double b = vm_tan(g);
-		g -= (b - x) / (1.0 + b * b);
-	}
+	if (x > 1.0 || x < -1.0) return 0.0;
+	g = 0.0;
+	for (i = 0; i < 20; ++i) g -= (vm_sin(g) - x) / vm_cos(g);
 	return g;
 }
 #endif
@@ -559,6 +544,19 @@ static VM_ATTRIBCONST double vm_acos(double x)
 }
 #endif
 #ifdef VM_NEEDMATH_ATAN2
+static VM_ATTRIBCONST double vm_atan(double x)
+{
+	double g;
+	int i;
+	if (x > 1.0) return M_PI_2 - vm_atan(1.0 / x);
+	else if (x < -1.0) return -vm_atan(-x);
+	g = x;
+	for (i = 0; i < 20; ++i) {
+		double b = vm_tan(g);
+		g -= (b - x) / (1.0 + b * b);
+	}
+	return g;
+}
 static VM_ATTRIBCONST double vm_atan2(double y, double x)
 {
 	double base;
