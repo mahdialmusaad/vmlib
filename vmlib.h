@@ -645,8 +645,8 @@ VM_VEC2F_IMPL(dvec2, double)
 VM_VEC2_IMPL(ivec2, int)
 VM_VEC2_IMPL(uvec2, unsigned)
 
-VM_API void quatset(quat *q, float x, float y, float z, float w) { q->x = x; q->y = y; q->z = z; q->w = w; }
-VM_API void quatseta(quat *q, float x, float y, float z) { q->x = x; q->y = y; q->z = z; q->w = 1.0f; }
+VM_API void quatset(quat *q, float x, float y, float z, float w) { vec4set(&q->v, x, y, z, w); }
+VM_API void quatseta(quat *q, float x, float y, float z) { vec4set(&q->v, x, y, z, 1.0f); }
 VM_API void quatsetv(quat *q, const vec3 *v)
 {
 	vec3 c, s, h;
@@ -658,11 +658,11 @@ VM_API void quatsetv(quat *q, const vec3 *v)
 	q->z = c.x * c.y * s.z - s.x * s.y * c.z;
 	q->w = c.x * c.y * c.z + s.x * s.y * s.z;
 }
-VM_API void quatclr(quat *q) { q->x = 0.0f; q->y = 0.0f; q->z = 0.0f; q->w = 1.0f; }
+VM_API void quatclr(quat *q) { vec4clr(&q->v); }
 
-VM_API void quatneg(quat *r, const quat *q) { r->x = -q->x; r->y = -q->y; r->z = -q->z; r->w = -q->w; }
-VM_API void quatadd(quat *r, const quat *a, const quat *b) { r->x = a->x + b->x; r->y = a->y + b->y; r->z = a->z + b->z; r->w = a->w + b->w; }
-VM_API void quatsub(quat *r, const quat *a, const quat *b) { r->x = a->x - b->x; r->y = a->y - b->y; r->z = a->z - b->z; r->w = a->w - b->w; }
+VM_API void quatneg(quat *r, const quat *q) { return vec4neg(&r->v, &q->v); }
+VM_API void quatadd(quat *r, const quat *a, const quat *b) { return vec4add(&r->v, &a->v, &b->v); }
+VM_API void quatsub(quat *r, const quat *a, const quat *b) { return vec4sub(&r->v, &a->v, &b->v); }
 VM_API void quatmul(quat *r, const quat *a, const quat *b)
 {
 	float x = a->w * b->x + a->x * b->w + a->y * b->z - a->z * b->y;
@@ -671,21 +671,16 @@ VM_API void quatmul(quat *r, const quat *a, const quat *b)
 	float w = a->w * b->w - a->x * b->x - a->y * b->y - a->z * b->z;
 	r->x = x; r->y = y; r->z = z; r->w = w;
 }
-VM_API void quatmuls(quat *r, const quat *q, float s) { r->x = q->x * s; r->y = q->y * s; r->z = q->z * s; r->w = q->w * s; }
-VM_API void quatdivs(quat *r, const quat *q, float s) { r->x = q->x / s; r->y = q->y / s; r->z = q->z / s; r->w = q->w / s; }
+VM_API void quatmuls(quat *r, const quat *q, float s) { return vec4mulc(&r->v, &q->v, s); }
+VM_API void quatdivs(quat *r, const quat *q, float s) { return vec4divc(&r->v, &q->v, s); }
 
-VM_API int quateq(const quat *a, const quat *b) { return vm_memcmp(a, b, sizeof *a) == 0; }
-VM_API int quateeq(const quat *a, const quat *b, float epsilon)
-{
-	quat dif;
-	quatsub(&dif, a, b);
-	return VABS(dif.x) < epsilon && VABS(dif.y) < epsilon && VABS(dif.z) < epsilon && VABS(dif.w) < epsilon;
-}
+VM_API int quateq(const quat *a, const quat *b) { return vec4eq(&a->v, &b->v); }
+VM_API int quateeq(const quat *a, const quat *b, float epsilon) { return vec4eeq(&a->v, &b->v, epsilon); }
 
 VM_API void quatconjugate(quat *r, const quat *q) { r->x = -q->x; r->y = -q->y; r->z = -q->z; r->w = q->w; }
-VM_API float quatdot(const quat *a, const quat *b) { return a->x * b->x + a->y * b->y + a->z * b->z + a->w * b->w; }
-VM_API float quatlen(const quat *q) { return vm_sqrt(quatdot(q, q)); }
-VM_API void quatnormalize(quat *r, const quat *q) { float inv = (float)(1.0 / quatlen(q)); r->x = q->x * inv; r->y = q->y * inv; r->z = q->z * inv; r->w = q->w * inv; }
+VM_API float quatdot(const quat *a, const quat *b) { return vec4dot(&a->v, &b->v); }
+VM_API float quatlen(const quat *q) { return vec4length(&q->v); }
+VM_API void quatnormalize(quat *r, const quat *q) { vec4normalize(&r->v, &q->v); }
 
 VM_API float quatpitch(const quat *q)
 {
