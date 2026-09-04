@@ -114,7 +114,7 @@ typedef long vm_i64;
 #endif
 
 #if VM_HASINC(<math.h>) && !defined(VM_NO_MATH_H)
-# include <math.h> // IWYU pragma: export
+# include <math.h>
 # define vm_sqrt sqrt
 # define vm_sin sin
 # define vm_cos cos
@@ -659,9 +659,9 @@ VM_API void quatsetv(quat *q, const vec3 *v)
 }
 VM_API void quatclr(quat *q) { vec4clr(&q->v); }
 
-VM_API void quatneg(quat *r, const quat *q) { return vec4neg(&r->v, &q->v); }
-VM_API void quatadd(quat *r, const quat *a, const quat *b) { return vec4add(&r->v, &a->v, &b->v); }
-VM_API void quatsub(quat *r, const quat *a, const quat *b) { return vec4sub(&r->v, &a->v, &b->v); }
+VM_API void quatneg(quat *r, const quat *q) { vec4neg(&r->v, &q->v); }
+VM_API void quatadd(quat *r, const quat *a, const quat *b) { vec4add(&r->v, &a->v, &b->v); }
+VM_API void quatsub(quat *r, const quat *a, const quat *b) { vec4sub(&r->v, &a->v, &b->v); }
 VM_API void quatmul(quat *r, const quat *a, const quat *b)
 {
 	float x = a->w * b->x + a->x * b->w + a->y * b->z - a->z * b->y;
@@ -670,8 +670,8 @@ VM_API void quatmul(quat *r, const quat *a, const quat *b)
 	float w = a->w * b->w - a->x * b->x - a->y * b->y - a->z * b->z;
 	r->x = x; r->y = y; r->z = z; r->w = w;
 }
-VM_API void quatmuls(quat *r, const quat *q, float s) { return vec4mulc(&r->v, &q->v, s); }
-VM_API void quatdivs(quat *r, const quat *q, float s) { return vec4divc(&r->v, &q->v, s); }
+VM_API void quatmuls(quat *r, const quat *q, float s) { vec4mulc(&r->v, &q->v, s); }
+VM_API void quatdivs(quat *r, const quat *q, float s) { vec4divc(&r->v, &q->v, s); }
 
 VM_API int quateq(const quat *a, const quat *b) { return vec4eq(&a->v, &b->v); }
 VM_API int quateeq(const quat *a, const quat *b, float epsilon) { return vec4eeq(&a->v, &b->v, epsilon); }
@@ -709,8 +709,9 @@ VM_API void quateulerangles(vec3 *eulerres, const quat *q)
 }
 VM_API float quatangle(const quat *q)
 {
+	float a;
 	if (VABS(q->w) <= 0.87758256f) return vm_acos(q->w) * 2.0f;
-	float a = vm_asin(vm_sqrt(vec3dot(&q->xyz, &q->xyz))) * 2.0f;
+	a = vm_asin(vm_sqrt(vec3dot(&q->xyz, &q->xyz))) * 2.0f;
 	return q->w < 0.0f ? M_PI * 2.0f - a : a;
 }
 VM_API void quataxis(const quat *q, vec3 *v)

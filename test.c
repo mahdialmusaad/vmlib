@@ -285,7 +285,6 @@ static double testfb_inner_2(vrand_os_st *rnd_st, double (*approx_func)(double, 
 
 static void testfb(void)
 {
-	int i;
 	vrand_os_st os_rng;
 	double e_sqrt, e_sin, e_cos, e_tan, e_asin, e_acos, e_atan2;
 	vrand_os_init(&os_rng);
