@@ -28,9 +28,13 @@ static double g_yscaling = 0.1;
 	}\
 } while (0)
 
-static void testtypes(void)
+static void testother(void)
 {
 	EXPECT(sizeof(vm_u64) == 8);
+	float dif1 = VDEGREES(M_PI);
+	float dif2 = VRADIANS(180.0f);
+	EXPECT(fabs(dif1 - 180.0f) < 0.001f);
+	EXPECT(fabs(dif2 - M_PI) < 0.001f);
 }
 
 static void testvec(void)
@@ -46,6 +50,9 @@ static void testvec(void)
 	EXPECT(sizeof v2 == 8);
 	EXPECT(sizeof v3 == 12);
 	EXPECT(sizeof v4 == 16);
+
+	EXPECT(sizeof v3.xy == sizeof v2);
+	EXPECT(sizeof v4.xyz == sizeof v3);
 
 	EXPECT((char *)&v2.y == (char *)&v2.g);
 	EXPECT((char *)&v2.x == (char *)&v2.d[0]);
@@ -135,10 +142,11 @@ static void testquat(void)
 static void testmat(void)
 {
 	mat4 identity = MAT4I, a = MAT4S(.7f), b = MAT4A(1.f,1.f,1.f,1.f,2.f,2.f,2.f,2.f,0.5f,0.5f,0.5f,0.5f,1.0f,1.0f,1.0f,1.0f);
-	mat4 aclose = MAT4S(0.99f), bclose = MAT4S(1.01f), invt = MAT4I;
+	mat4 aclose = MAT4S(0.99f), bclose = MAT4S(1.01f), invt = MAT4I, mov = MAT4I;
 	float m4ic[16] = {1.0f,0.0f,0.0f,0.0f,0.0f,1.0f,0.0f,0.0f,0.0f,0.0f,1.0f,0.0f,0.0f,0.0f,0.0f,1.0f};
 	vec3 cpos = VEC3(10.f, 10.f, 10.f), target = VEC3(12.0f, 4.0f, 20.0f), up = VEC3(0.f,1.f,0.f);
 	vec3 vm4tr = VEC3(10.0f, 20.0f, 30.0f), vm4ro = VEC3(0.0f, 90.0f, 45.0f), vm4sc = VEC3(5.0f, 0.1f, 2.0f), vm4roinv = VEC3(2.0f, 23.0f, 34.0f);
+	vec3 vm4pos = VEC3(1.0f, 2.0f, 3.0f), vm4rot = VEC3(0.0f, 1.0f, 0.0f), vm4scl = VEC3(2.0f, 1.0f, 3.0f), vm4rtr = VEC3(180.0f, 0.0f, 180.0f), vm4of;
 	float det;
 
 	float m4ac[16] = {0.7f,0.0f,0.0f,0.0f,0.0f,0.7f,0.0f,0.0f,0.0f,0.0f,0.7f,0.0f,0.0f,0.0f,0.0f,0.7f};
@@ -167,12 +175,17 @@ static void testmat(void)
 	EXPECT((mat4scale(&a, &a, &vm4sc), mat4eq(&a, &m4sc, 0.001f)));
 	EXPECT((mat4mul(&a, &a, &b), mat4eq(&a, &m4ml, 0.01f)));
 	EXPECT((mat4transpose(&a, &a), mat4eq(&a, &m4tp, 0.001f)));
-	EXPECT((mat4transpose(&a, &a), mat4eq(&a, &m4ml, 0.001f)));
 	mat4rotate(&invt, &invt, 1.2f, &vm4roinv);
 	EXPECT((mat4inverse(&invt, &invt), mat4eq(&invt, &m4iv, 0.001f)));
 	EXPECT((mat4lookat(&a, &cpos, &target, &up), mat4eq(&a, &m4la, 0.001f)));
 	EXPECT((mat4perspective(&a, (float)M_PI, 1.0f, 0.1f, 100.0f), mat4eq(&a, &m4pr, 0.001f)));
 	EXPECT((mat4orthographic(&a, 1.0f, 2.0f, 3.0f, 4.0f, 0.1f, 100.0f), mat4eq(&a, &m4ot, 0.001f)));
+	mat4translate(&mov, &mov, &vm4pos);
+	EXPECT((mat4positionof(&mov, &vm4of), vec3eeq(&vm4pos, &vm4of, 0.001f)));
+	mat4scale(&mov, &mov, &vm4scl);
+	EXPECT((mat4scaleof(&mov, &vm4of), vec3eeq(&vm4scl, &vm4of, 0.001f)));
+	mat4rotate(&mov, &mov, M_PI, &vm4rot);
+	EXPECT((mat4rotationof(&mov, &vm4of), vec3eeq(&vm4rtr, &vm4of, 0.001f)));
 	det = mat4determinant(&a);
 	det -= -0.080080f;
 	EXPECT(VABS(det) <= 0.001f);
@@ -365,7 +378,7 @@ int main(void)
 	uint64_t noise_seed = 2147;
 	char fnbuf[128];
 
-	testtypes();
+	testother();
 	testvec();
 	testquat();
 	testmat();

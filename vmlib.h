@@ -162,6 +162,9 @@ typedef long vm_i64;
 # define M_SQRT1_2 0.70710678118654752440
 #endif
 
+#define M_RAD (M_PI / 180.0)
+#define M_DEG (180.0 / M_PI)
+
 #define VABS(x) ((x) < 0 ? -(x) : (x))
 #define VMAX(a,b) ((a) > (b) ? (a) : (b))
 #define VMIN(a,b) ((a) < (b) ? (a) : (b))
@@ -169,8 +172,8 @@ typedef long vm_i64;
 #define VFMA(a,b,c) (((a) * (b)) + (c))
 #define VMIX(x,y,a) ((x) * (1 - (a)) + (y) * (a))
 #define VSTEP(edge,x) (((x) < (edge)) ? 0 : 1)
-#define VRADIANS(deg) ((__typeof__(deg))(M_PI / 180.0) * (deg))
-#define VDEGREES(rad) ((__typeof__(rad))(180.0 / M_PI) * (deg))
+#define VRADIANS(deg) ((__typeof__(deg))M_RAD * (deg))
+#define VDEGREES(rad) ((__typeof__(rad))M_DEG * (rad))
 
 /* ---------- Mathematical vectors ---------- */
 
@@ -183,8 +186,8 @@ typedef long vm_i64;
 
 #define VM_VECDEF(n,k) VM_PACK_START(2)\
 typedef union n##2 { k d[2]; struct { k x, y; }; struct { k r, g; }; struct { k s, t; }; } VM_PACK_MID(2) n##2;\
-typedef union n##3 { k d[3]; struct { k x, y, z; }; struct { k r, g, b; }; struct { k s, t, p; }; } VM_PACK_MID(4) n##3;\
-typedef union n##4 { k d[4]; struct { k x, y, z, w; }; struct { k r, g, b, a; }; struct { k s, t, p, q; }; } VM_PACK_MID(4) n##4; VM_PACK_END
+typedef union n##3 { k d[3]; n##2 xy, rg, st; struct { k x, y, z; }; struct { k r, g, b; }; struct { k s, t, p; }; } VM_PACK_MID(4) n##3;\
+typedef union n##4 { k d[4]; n##3 xyz, rgb, stp; struct { k x, y, z, w; }; struct { k r, g, b, a; }; struct { k s, t, p, q; }; } VM_PACK_MID(4) n##4; VM_PACK_END
 
 VM_VECDEF(vec, float)
 VM_VECDEF(dvec, double)
@@ -375,6 +378,13 @@ VM_API void mat4translate(mat4 *r, const mat4 *m, const vec3 *v);
 VM_API void mat4rotate(mat4 *r, const mat4 *m, float radians, const vec3 *v);
 /* Scale matrix m by v. */
 VM_API void mat4scale(mat4 *r, const mat4 *m, const vec3 *v);
+
+/* Get position of matrix m into v. */
+VM_API void mat4positionof(const mat4 *m, vec3 *v);
+/* Get Euler rotation of matrix m into v. */
+VM_API void mat4rotationof(const mat4 *m, vec3 *v);
+/* Get scale of matrix m into v. */
+VM_API void mat4scaleof(const mat4 *m, vec3 *v);
 
 /* Create a view matrix m that looks at a target. */
 VM_API void mat4lookat(mat4 *m, const vec3 *campos, const vec3 *targetpos, const vec3 *up);
@@ -1026,6 +1036,36 @@ VM_API void mat4scale(mat4 *r, const mat4 *m, const vec3 *v)
 	vec4mulc(&r->v[1], &m->v[1], v->y);
 	vec4mulc(&r->v[2], &m->v[2], v->z);
 	r->v[3] = m->v[3];
+}
+
+VM_API void mat4positionof(const mat4 *m, vec3 *v)
+{
+	*v = m->v[3].xyz;
+}
+
+VM_API void mat4rotationof(const mat4 *r, vec3 *v)
+{
+	mat4 ms = *r;
+	mat4 *m = &ms;
+	for (int i = 0; i < 16; ++i) m->d[i] = r->d[i] / r->d[15];
+
+	v->y = vm_asin(VCLAMP(-m->n[0][2], -1.0f, 1.0f));
+
+	if (VABS(v->y) < 1.0f) {
+		v->x = vm_atan2(m->n[1][2], m->n[2][2]);
+		v->z = vm_atan2(m->n[0][1], m->n[0][0]);
+	} else {
+		v->x = vm_atan2(-m->n[2][0], m->n[1][1]);
+		v->z = 0.0f;
+	}
+
+	vec3mulc(v, v, M_DEG);
+}
+VM_API void mat4scaleof(const mat4 *m, vec3 *v)
+{
+	v->x = vec3length(&m->v[0].xyz);
+	v->y = vec3length(&m->v[1].xyz);
+	v->z = vec3length(&m->v[2].xyz);
 }
 
 VM_API void mat4lookat(mat4 *m, const vec3 *campos, const vec3 *targetpos, const vec3 *up)
